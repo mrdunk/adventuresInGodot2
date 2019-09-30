@@ -15,18 +15,22 @@ func _draw():
 func draw_tiles():
   var values = WorldData.get_values_at_recursion(0)
   var step = values[1]
-  var multiplier = 4
-  for y in values:
-    for x in values:
-      var tile = WorldData.coordinates[y][x]
-      var height := 0.0
-      if tile:
-        height = tile.height
-        if height > 0.5:
-          draw_rect(Rect2(Vector2(x * multiplier, y * multiplier),
-                          Vector2(step * multiplier - 1, step * multiplier - 1)), Color(0.6 * height, 1.4 - height, 0))
-        else:
-          draw_rect(Rect2(Vector2(x * multiplier, y * multiplier),
-                          Vector2(step * multiplier - 1, step * multiplier - 1)), Color(0, 0.2, 1))
+  var multiplier = 8
+  for x in values:
+    for y in values:
+      var tile = WorldData.coordinates[x][y]
+      var height = tile.height
+                         
+      if height > WorldData.SEA_LEVEL:
+        draw_rect(Rect2(Vector2(x * multiplier, y * multiplier),
+                        Vector2(step * multiplier - 1, step * multiplier - 1)), Color(0.0 * height, 1.4 - height, 0, 1))
+      else:
+        draw_rect(Rect2(Vector2(x * multiplier, y * multiplier),
+                        Vector2(step * multiplier - 1, step * multiplier - 1)), Color(0, 0.2, 2 * height, 1))
+
+      if tile.highlight:
+        draw_rect(Rect2(Vector2((x + step / 2.0) * multiplier, (y + step / 2.0) * multiplier),
+                        Vector2(4, 4)), Color(1, 0, 0, 1)) 
       #draw_rect(Rect2(x * multiplier, y * multiplier, (step) * multiplier, (step) * multiplier),
       #          Color(1,0,0), false)
+    
