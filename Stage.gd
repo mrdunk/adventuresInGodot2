@@ -15,7 +15,9 @@ func _draw():
 func draw_tiles():
   var values = WorldData.get_values_at_recursion(0)
   var step = values[1]
-  var multiplier = 8
+  var multiplier = 10.0
+  var h_size = 4.0
+  var h2_size = 8.0
   for x in values:
     for y in values:
       var tile = WorldData.coordinates[x][y]
@@ -28,9 +30,12 @@ func draw_tiles():
         draw_rect(Rect2(Vector2(x * multiplier, y * multiplier),
                         Vector2(step * multiplier - 1, step * multiplier - 1)), Color(0, 0.2, 2 * height, 1))
 
+      if tile.highlight2:
+        draw_rect(Rect2(Vector2((x + step / 4.0) * multiplier, (y + step / 4.0) * multiplier),
+                        Vector2(h2_size, h2_size)), Color(1, 1, 1, 1)) 
       if tile.highlight:
-        draw_rect(Rect2(Vector2((x + step / 2.0) * multiplier, (y + step / 2.0) * multiplier),
-                        Vector2(4, 4)), Color(1, 0, 0, 1)) 
+        draw_rect(Rect2(Vector2((x + step / 4.0) * multiplier, (y + step / 4.0) * multiplier),
+                        Vector2(h_size, h_size)), Color(1, 0, 0, 1)) 
       #draw_rect(Rect2(x * multiplier, y * multiplier, (step) * multiplier, (step) * multiplier),
       #          Color(1,0,0), false)
     

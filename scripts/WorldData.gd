@@ -95,6 +95,14 @@ func get_neighbours(tile: Tile, step: int) -> Array:
     if tile.y < WORLD_SIZE - step:
       neighbours.append(coordinates[tile.x + 1][tile.y + step])
   return neighbours
+
+func get_neighbours_of_array(input: Array, step: int) -> Array:
+  var neighbours := []
+  for tile in input:
+    for neighbour in get_neighbours(tile, step):
+      if not neighbour in neighbours and not neighbour in input:
+        neighbours.append(neighbour)
+  return neighbours
   
 func get_lowest_neighbour(tile: Tile, step: int, not_in: Array):
   var neighbours := get_neighbours(tile, step)
@@ -141,28 +149,9 @@ func close_dips(recursion: int) -> void:
           candidates.append(neighbour)
 
     for tile in area:
-      #tile.highlight = true
+      #tile.highlight2 = true
       tile.height = lowest_candidate
 
-func close_dips_old(property: String, recursion: int):
-  var count = 0
-  var values = get_values_at_recursion(recursion)
-  var step = values[1]
-  for y in range(step, WORLD_SIZE - step, step):
-    for x in range(step, WORLD_SIZE - step, step):
-      # Find lowest neighbouring tile.
-      var neighbours = get_neighbours(coordinates[x][y], step)
-      neighbours.sort_custom(Static_Methods, "sort_tiles")
-      var lowest = neighbours[0]      
-      
-      if coordinates[x][y][property] <= lowest[property] and lowest[property] >= SEA_LEVEL:
-        count += 1
-        
-        coordinates[x][y][property] = lowest[property] + 0.01
-        #coordinates[x][y].highlight = true
-  print("close_dips recursion: %s count: %s step: %s" % [recursion, count, step])
-  return count
-    
 func find_highpoints(property: String, recursion: int):
   var values = get_values_at_recursion(recursion)
   var step = values[1]
@@ -190,28 +179,47 @@ func flow_downhill():
   highpoints.sort_custom(Static_Methods, "sort_tiles")
   assert(highpoints.front().height < highpoints.back().height)
   while highpoints.size():
+    print("--------")
+    var count = 10
     var tile = highpoints.pop_back()
     tile.highlight = true
-    while true:
-      var neighbours = get_neighbours(tile, step)
-      neighbours.sort_custom(Static_Methods, "sort_tiles")
-      var found = false
-      for neighbour in neighbours:
-        if tile.height >= neighbour.height and not neighbour.highlight:
-          tile = neighbour
-          tile.highlight = true
-          found = true
-          break
-      if not found:
-        break
-      #if tile.height >= neighbours[0].height and not neighbours[0].highlight:
-      #  tile = neighbours[0]
-      #  tile.highlight = true
-      #else:
-      #  print("flow_downhill  %s" % (tile.height >= neighbours[0].height))
-      #  break
-      
-      
+    
+    var failed_downhill_tile = false
+    while not failed_downhill_tile and count:
+      #count -= 1
+      var got_downhill_tile = false
+        
+      var depression := [tile]
+      var unflooded_depression := []
+      while not got_downhill_tile and not failed_downhill_tile:
+        var front := get_neighbours_of_array(depression, step)
+        front.sort_custom(Static_Methods, "sort_tiles")
+        var grown_depression = false
+        for t in front:
+          if tile.height >= t.height:
+            if not t in depression:
+              grown_depression = true
+              depression.append(t)
+              if not t.highlight:
+                unflooded_depression.append(t)
+                #break
+        if not grown_depression:
+          failed_downhill_tile = true
+        
+        while unflooded_depression.size():
+          tile = unflooded_depression.pop_front()
+          while tile.highlight:
+            tile = unflooded_depression.pop_front()
+            print("*")
+          if tile:
+            tile.highlight = true
+            got_downhill_tile = true
+            if tile.height <= SEA_LEVEL:
+              print("!!!")
+            break
+        #got_downhill_tile = true
+        print("%s %s %s %s %s" % [depression.size(), unflooded_depression.size(), front.size(), got_downhill_tile, failed_downhill_tile])
+        
 func average_corners(property: String, x: int, y: int, step: int, jitter: float):
   """ For a given (x,y) coordinate, calculate the value of the tile at (x+step,y+step). """
   if x > WORLD_SIZE - 2 * step:
